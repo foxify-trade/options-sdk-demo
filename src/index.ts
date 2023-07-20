@@ -19,25 +19,23 @@ const sdk = new OptionsSdk({
   }
 })
 
-const minStableAmount = 10;
 async function main() {
 
   const [oracle] = await sdk.api.getOracles();
   console.log(oracle);
-  return;
-  // const { orderId } = await sdk.contracts.createOrder({
-  //   direction: sdk.contracts.Direction.Up,
-  //   duration: '15m',
-  //   oracle: oracle.address,
-  //   percent: 5,
-  //   rate: 1e16.toString(),
-  //   reinvest: false,
-  //   amount: 100,
-  // });
+  const { orderId } = await sdk.contracts.createOrder({
+    direction: sdk.contracts.Direction.Up,
+    duration: '15m',
+    oracle: oracle.address,
+    percent: 5,
+    rate: 1e16.toString(),
+    reinvest: false,
+    amount: 100,
+  });
 
-  // await sdk.contracts.increaseOrder(orderId, 10);
-  // await sdk.contracts.withdrawOrder(orderId, 10);
-  // await sdk.contracts.closeOrder(orderId);
+  await sdk.contracts.increaseOrder(orderId, 10);
+  await sdk.contracts.withdrawOrder(orderId, 10);
+  await sdk.contracts.closeOrder(orderId);
 
 }
 
