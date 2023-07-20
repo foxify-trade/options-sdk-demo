@@ -1,0 +1,13 @@
+{
+  "scripts": {
+    "build": "yarn tsc",
+    "start": "yarn build && node ./dist/index.js"
+  },
+  "dependencies": {
+    "@foxify.trade/options-sdk": "1.0.2",
+    "@types/node": "^20.4.2",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.1.6"
+  },
+  "devDependencies": {}
+}
