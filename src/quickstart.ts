@@ -6,6 +6,12 @@
 // 1. Create a .env file with your private key: PK='your_private_key'
 // 2. yarn ts-node quickstart.ts
 
+// IMPORTANT NOTES  :
+// Code of the sdk in : node_modules/@foxify.trade/options-sdk/dist/
+// important functions are in : 
+// options-sdk/dist/contracts/Core/web3.d.ts
+// options-sdk/dist/api/api.module.d.ts
+
 import assert from 'assert';
 import { OptionsSdk } from '@foxify.trade/options-sdk';
 require('dotenv').config();
@@ -53,15 +59,15 @@ async function main() {
   const direction = sdk.contracts.Direction.Up;
   const duration = '15m';
   const percent = 3.0; // For now, must be an int, remove this limitation
-  const rate = 1.16;
-  const amount = 8; // For now, must be an int, remove this limitation
+  const rate = 1.11
+  const amount = 12; // For now, must be an int, remove this limitation
 
-  let doCreateOrder = true;
-  let doIncreaseOrder = true; // Ok but does not display on the GUI for 0.5% (it does for 1%)
+  let doGetOrders = true;
+  let doCreateOrder = false;
+  let doIncreaseOrder = false; // Ok but does not display on the GUI for 0.5% (it does for 1%)
   let doDecreaseOrder = true; // not ok
   let doCancelOrder = true;
-  let doGetOrders = true;
-  let doGetPriceFeed = true; // Does not compile -> wrong version ?
+  let doGetPriceFeed = false; // ok
 
   if (doGetPriceFeed) {
     const [oracle] = await sdk.api.getOracles();
@@ -90,7 +96,26 @@ async function main() {
   console.log(`Available oracle: ${JSON.stringify(oracle, null, 2)}`);
   console.log(`Working on asset : ${oracle.name}`);
 
-  let globalOrderId = 581; // Either a hard-coded number, or leave it to null if we create an order and increase/decrease/cancel on this specific order 
+  // let globalOrderId = 581; // Either a hard-coded number, or leave it to null if we create an order and increase/decrease/cancel on this specific order 
+  let globalOrderId = 679; // Either a hard-coded number, or leave it to null if we create an order and increase/decrease/cancel on this specific order 
+
+if (doGetOrders) {
+// Type IGetOrderParams :
+  const orderParams = {
+    account: sdk.contracts.sender,
+    closed: true,
+    // orderType: 'my_order' | 'all_order',
+    orderType: 'all_order' as const,
+    limit: 20 
+}
+
+   const [order] = await sdk.api.getOrders(orderParams);
+   const myOrderCount = await sdk.contracts.core.methods.creatorOrdersCount(sdk.contracts.sender).call();
+
+   console.log(`myOrderCount : ${myOrderCount}`);
+   console.log(`sender address: ${sdk.contracts.sender}`);
+   console.log (`orders : ${JSON.stringify(order,null,2)}`);
+}
 
   if (doCreateOrder) {
     const { orderId } = await sdk.contracts.createOrder({
@@ -116,7 +141,7 @@ async function main() {
 
   if (doDecreaseOrder) {
     const orderId = globalOrderId;
-    const diffAmount = 1;
+    const diffAmount = 10;
 
     await sdk.contracts.decreaseOrderAmount(orderId, diffAmount);
     console.log(`orderId #${orderId} was decreased by ${diffAmount} USDC`);
@@ -128,7 +153,7 @@ async function main() {
     console.log(`orderId #${orderId} was cancelled !`);
   }
 
-
+/*
   if (doGetOrders) {
     console.log(`Trying to get myOrders...`);
 
@@ -142,6 +167,7 @@ async function main() {
 
     console.log(`myOrders : ${JSON.stringify(myOrders, null, 2)}`);
   }
+*/
 
 }
 
