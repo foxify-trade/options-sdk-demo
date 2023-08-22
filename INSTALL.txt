@@ -1,0 +1,8 @@
+INSTALLATION :
+Install Node.js (version >= 14)
+
+yarn install @foxify.trade/options-sdk@1.2.0-beta.3
+
+RUN DEMO :
+./run_quickstart.ts
+

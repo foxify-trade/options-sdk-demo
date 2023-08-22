@@ -12,6 +12,17 @@
 // options-sdk/dist/contracts/Core/web3.d.ts
 // options-sdk/dist/api/api.module.d.ts
 
+// Smart contract code : https://arbiscan.io/address/0xec301D5a4ee80DF21E243E5490d29d44B83c27fC#code
+// Check databaseOrderId 37387 on the GUI : https://www.beta.foxify.trade/order/37387
+// Current bug : 
+//   sdk.api : database id
+//   sdk.contracts : blockchain id
+ 
+// TODO Tuan : 
+// Create a human readable format for binary options
+// Create an equivalence function between databaseOrderId and blockchainOrderId
+// Retrieve all orders from the market with non null amounts
+
 import assert from 'assert';
 import { OptionsSdk } from '@foxify.trade/options-sdk';
 require('dotenv').config();
@@ -52,22 +63,31 @@ const sdk = new OptionsSdk({
 
 
 async function main() {
-
   const [oracle] = await sdk.api.getOracles();
 
   // Define the binary option :
   const direction = sdk.contracts.Direction.Up;
   const duration = '15m';
   const percent = 3.0; // For now, must be an int, remove this limitation
-  const rate = 1.11
-  const amount = 12; // For now, must be an int, remove this limitation
+  const rate = 1.31416
+  const amount = 13.5; // For now, must be an int, remove this limitation
 
-  let doGetOrders = true;
+  let doLargeAmountPreapproval = false;
+  let doGetOrdersStart = true;
   let doCreateOrder = false;
   let doIncreaseOrder = false; // Ok but does not display on the GUI for 0.5% (it does for 1%)
-  let doDecreaseOrder = true; // not ok
-  let doCancelOrder = true;
+  let doCancelOrder = false;
+  let doDecreaseOrder = false; // ok
   let doGetPriceFeed = false; // ok
+  let doAcceptOrder = true;
+  let doGetOrdersFinish = true;
+
+  // Preapproving a large amount saves on approve txfees whcih are are around 28 cents per approval.
+  // This needs to be done once for all
+  if (doLargeAmountPreapproval) {
+    const largePreapprovalAmount = 1000000; // USDC
+    await sdk.contracts.approve(largePreapprovalAmount);
+  }
 
   if (doGetPriceFeed) {
     const [oracle] = await sdk.api.getOracles();
@@ -97,25 +117,32 @@ async function main() {
   console.log(`Working on asset : ${oracle.name}`);
 
   // let globalOrderId = 581; // Either a hard-coded number, or leave it to null if we create an order and increase/decrease/cancel on this specific order 
-  let globalOrderId = 679; // Either a hard-coded number, or leave it to null if we create an order and increase/decrease/cancel on this specific order 
+  let globalOrderId = 650; // Either a hard-coded number, or leave it to null if we create an order and increase/decrease/cancel on this specific order 
+  let globalDbId = 39903;
+  if (doGetOrdersStart) {
+  // Type IGetOrderParams :
+    const orderParams = {
+      account: sdk.contracts.sender,
+      // closed: true, // status: inactive, active, all // FIXME
+      // orderType: 'my_order' | 'all_order', // FIXME
+      // orderType: 'my_order' as const,
+      closed: false,
+      orderType: 'all_order' as const,  // EXCEPT MINE  
+      limit: 1000 // Pagination only 
+    }
 
-if (doGetOrders) {
-// Type IGetOrderParams :
-  const orderParams = {
-    account: sdk.contracts.sender,
-    closed: true,
-    // orderType: 'my_order' | 'all_order',
-    orderType: 'all_order' as const,
-    limit: 20 
-}
-
-   const [order] = await sdk.api.getOrders(orderParams);
+   const orders = await sdk.api.getOrders(orderParams);
    const myOrderCount = await sdk.contracts.core.methods.creatorOrdersCount(sdk.contracts.sender).call();
 
    console.log(`myOrderCount : ${myOrderCount}`);
    console.log(`sender address: ${sdk.contracts.sender}`);
-   console.log (`orders : ${JSON.stringify(order,null,2)}`);
-}
+   console.log (`There are ${orders.length} orders : ${JSON.stringify(orders,null,2)}`);
+   const filtered = orders.filter((order) => BigInt(order.available) > 0n);
+   console.log('------------- Active orders with amount gt 0', JSON.stringify(filtered, null, 2))
+
+   const { data: positions } = await sdk.api.raw.positions.positionControllerGetPositions(sdk.contracts.sender);
+   console.log (`START: Updated positions : ${JSON.stringify(positions,null,2)} `);
+  }
 
   if (doCreateOrder) {
     const { orderId } = await sdk.contracts.createOrder({
@@ -132,19 +159,23 @@ if (doGetOrders) {
     globalOrderId = orderId;
   }
 
-  if (doIncreaseOrder) {
-    const orderId = globalOrderId;
-    const diffAmount = 1;
-    await sdk.contracts.increaseOrderAmount(orderId, diffAmount);
-    console.log(`orderId ${orderId} was increased by ${diffAmount} USDC`);
+  if (doAcceptOrder) {
+   const blockchainId = 670;
+   const localDbId = 41021; 	
+    const orderId = blockchainId;
+    const amount = 3; // USDC
+    await sdk.contracts.acceptOrders([{ orderId, amount }]);
+
+    const order = await sdk.api.getOrder(localDbId);
+    console.log(`order ${JSON.stringify(order, null,2)}  was accepted with amount of ${amount} USDC`);
+    console.log(`orderId ${orderId} was traded at market with amount of ${amount} USDC`);
   }
 
-  if (doDecreaseOrder) {
+  if (doIncreaseOrder) {
     const orderId = globalOrderId;
-    const diffAmount = 10;
-
-    await sdk.contracts.decreaseOrderAmount(orderId, diffAmount);
-    console.log(`orderId #${orderId} was decreased by ${diffAmount} USDC`);
+    const diffAmount = 3;
+    await sdk.contracts.increaseOrderAmount(orderId, diffAmount);
+    console.log(`orderId ${orderId} was increased by ${diffAmount} USDC`);
   }
 
   if (doCancelOrder) {
@@ -153,6 +184,18 @@ if (doGetOrders) {
     console.log(`orderId #${orderId} was cancelled !`);
   }
 
+  if (doDecreaseOrder) {
+    const orderId = globalOrderId;
+    // const diffAmount = 2;
+    // ONLY TO COMPUTE THE DIFFAMOUNT, WE USE THE DATABASE ID
+   // sdk.api : database id
+   // sdk.contracts : blockchain id
+    const order = await sdk.api.getOrder(globalDbId);
+    const diffAmount = Number(order.available) / 1e6;
+    console.log(`orderId #${orderId} has an available amount of ${diffAmount} USDC`);
+    await sdk.contracts.decreaseOrderAmount(orderId, diffAmount);
+    console.log(`orderId #${orderId} was decreased by available ${diffAmount} USDC`);
+  }
 /*
   if (doGetOrders) {
     console.log(`Trying to get myOrders...`);
@@ -169,6 +212,27 @@ if (doGetOrders) {
   }
 */
 
+  if (doGetOrdersFinish) {
+  // Type IGetOrderParams :
+    const orderParams = {
+      account: sdk.contracts.sender,
+      // closed: true, // status: inactive, active, all // FIXME
+      // orderType: 'my_order' | 'all_order', // FIXME
+      // orderType: 'my_order' as const,
+      closed: false,
+      orderType: 'my_order' as const,  // all_order : takes all market orders EXCEPT MINE  | my_order : retrieves all orders which are mine
+      limit: 1000 // Pagination only 
+    }
+
+    const orders = await sdk.api.getOrders(orderParams);
+   console.log (`FINISH : There are ${orders.length} orders : ${JSON.stringify(orders,null,2)}`);
+  // const myOrderCount = await sdk.contracts.core.methods.creatorOrdersCount(sdk.contracts.sender).call();
+
+   // console.log(`myOrderCount : ${myOrderCount}`);
+   // console.log(`sender address: ${sdk.contracts.sender}`);
+   const { data: positions }  = await sdk.api.raw.positions.positionControllerGetPositions(sdk.contracts.sender);
+   console.log (`FINISH : Updated positions : ${JSON.stringify(positions,null,2)} `);
+  }
 }
 
 main();
