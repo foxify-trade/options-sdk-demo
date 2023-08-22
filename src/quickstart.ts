@@ -26,8 +26,10 @@
 import assert from 'assert';
 import { OptionsSdk } from '@foxify.trade/options-sdk';
 require('dotenv').config();
+// import { addNumbers } from '../lib/arithmetic';
 
-assert(process.env.PK, 'Set PK in .env');
+
+assert(process.env.PK, 'Set your private key in .env');
 
 // This 'sdk' variable is not understood when property 'priceFeed' is included.
 // 'const sdk' has to be removed.
@@ -63,6 +65,11 @@ const sdk = new OptionsSdk({
 
 
 async function main() {
+
+
+  // const result = addNumbers(2, 3);
+  // console.log(`addNumbers : ${result}`); // Output: 5
+
   const [oracle] = await sdk.api.getOracles();
 
   // Define the binary option :
@@ -82,17 +89,19 @@ async function main() {
   let doAcceptOrder = false;
   let doGetOrdersFinish = true;
 
-  // Preapproving a large amount saves on approve txfees whcih are are around 28 cents per approval.
-  // This needs to be done once for all
+  // Preapproving a large amount upfront saves on approve txfees whcih are are around 28 USD cents per approval.
+  // This needs to be done once for all and does not need to be repeated. 
+  // If you want to reestablish approval, set largePreapprovalAmount = 0;
   if (doLargeAmountPreapproval) {
     const largePreapprovalAmount = 1000000; // USDC
     await sdk.contracts.approve(largePreapprovalAmount);
   }
 
+  // Get the Pyth oracles
   if (doGetPriceFeed) {
     const [oracle] = await sdk.api.getOracles();
 
-    console.log(`Oracle pyth id for ${oracle.name} (address=${oracle.address})`)
+    console.log(`Pyth oracle id for ${oracle.name} (address=${oracle.address})`)
     const latest = await sdk.priceFeed.getLatestPrice(oracle.address);
     console.log('Latest Price Feeds', latest);
     sdk.priceFeed.subscribePriceUpdates(oracle.address, (price) => {
@@ -123,11 +132,11 @@ async function main() {
   // Type IGetOrderParams :
     const orderParams = {
       account: sdk.contracts.sender,
-      // closed: true, // status: inactive, active, all // FIXME
+      // closed: true, // status: inactive, active, both // FIXME
       // orderType: 'my_order' | 'all_order', // FIXME
       // orderType: 'my_order' as const,
       closed: false,
-      orderType: 'all_order' as const,  // EXCEPT MINE  
+      orderType: 'all_order' as const,  // ALL ORDERS EXCEPT MINE  
       limit: 1000 // Pagination only 
     }
 
@@ -137,8 +146,16 @@ async function main() {
    console.log(`myOrderCount : ${myOrderCount}`);
    console.log(`sender address: ${sdk.contracts.sender}`);
    console.log (`There are ${orders.length} orders : ${JSON.stringify(orders,null,2)}`);
-   const filtered = orders.filter((order) => BigInt(order.available) > 0n);
-   console.log('------------- Active orders with amount gt 0', JSON.stringify(filtered, null, 2))
+   const nonNulOrders = orders.filter((order) => BigInt(order.available) > 0n);
+
+   console.log (`BEGIN Displaying orders in human friendly format`);
+   for(let i = 0; i < nonNulOrders.length; i++) {
+	  console.log(`rawOrders : ${JSON.stringify(nonNulOrders[i],null,2)}`);
+	  console.log(`humanReadableOrders : ${JSON.stringify(displayOrder(nonNulOrders[i]),null,2)}`); 
+   }
+   console.log (`END Displaying orders in human friendly format`);
+
+   console.log(`------------- Active orders with amount gt 0 ${JSON.stringify(nonNulOrders, null, 2)}`);
 
    const { data: positions } = await sdk.api.raw.positions.positionControllerGetPositions(sdk.contracts.sender);
    console.log (`START: Updated positions : ${JSON.stringify(positions,null,2)} `);
@@ -159,6 +176,7 @@ async function main() {
     globalOrderId = orderId;
   }
 
+  // Lift an offer or hit a bid. Choose the blockchainId / localDatabaseId and   
   if (doAcceptOrder) {
    const blockchainId = 670;
    const localDbId = 41021; 	
@@ -233,6 +251,75 @@ async function main() {
    const { data: positions }  = await sdk.api.raw.positions.positionControllerGetPositions(sdk.contracts.sender);
    console.log (`FINISH : Updated positions : ${JSON.stringify(positions,null,2)} `);
   }
+}
+ 
+function displayOrder (order:any) {
+	// Structure of an order
+/*
+  {
+    "id": 41641,
+    "orderId": 685,
+    "creator": "0x9e4f715734712c0902b077363ad522422d5d3ff9",
+    "amount": "25900000",
+    "reserved": "0",
+    "available": "25900000",
+    "percent": "1000000100000000000",
+    "direction": "up",
+    "rate": "810000000000000000",
+    "duration": "900",
+    "reinvest": false,
+    "oracle": {
+      "id": 20734,
+      "name": "BTC/USD",
+      "address": "0x0015d0ab0e5ac1f31f8c40fcf9844797feeb1b09",
+      "priceId": "0xe62df6c8b4a85fe1a67db44dc12de5db330f7ac66b72dc658afedf0f4a415b43",
+      "decimals": "18"
+    },
+    "orderStats": {
+      "countWon": 2,
+      "countLost": 1,
+      "lostSum": "8100000",
+      "wonSum": "29382716"
+    }
+  }
+*/
+const humanReadableOrder = {
+    "id": order.id,
+    "orderId": order.orderId,
+    "creator": order.createor,
+    "amount": Number(order.amount/1e6), //"25900000",
+    "reserved": Number(order.reserved)/1e6, // "0",
+    "available": Number(order.available)/1e6, // "25900000",
+    "percent": Number(order.percent)/1e6, // "1000000100000000000",
+    "direction": order.direction,
+    "rate": Number(order.rate) / 1e6, // "810000000000000000",
+    "duration": Number(order.duration), // "900",
+    "reinvest": order.reinvest, // false,
+    "oracle": order.oracle, /* {
+      "id": 20734,
+      "name": "BTC/USD",
+      "address": "0x0015d0ab0e5ac1f31f8c40fcf9844797feeb1b09", "priceId": "0xe62df6c8b4a85fe1a67db44dc12de5db330f7ac66b72dc658afedf0f4a415b43",
+      "decimals": "18"
+    },
+*/
+// CHECK
+    "orderStats": {
+	    "countWon": order?.orderStats?.countWon,
+	    "countLost": order?.orderStats?.countLost,
+	    "lostsum": Number(order?.orderStats?.lostSum)/1e6,
+	    "wonsum": Number(order?.orderStats?.wonSum)/1e6,
+    }
+/*
+    "orderStats": {
+      "countWon": 2,
+      "countLost": 1,
+      "lostSum": "8100000",
+      "wonSum": "29382716"
+    }
+*/
+  }
+  // console.log (`${JSON.stringify(humanReadableOrder, null,2)}`);
+  return humanReadableOrder 
 }
 
 main();
