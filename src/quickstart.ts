@@ -68,9 +68,9 @@ async function main() {
   // Define the binary option :
   const direction = sdk.contracts.Direction.Up;
   const duration = '15m';
-  const percent = 3.0; // For now, must be an int, remove this limitation
+  const percent = 3.0; 
   const rate = 1.31416
-  const amount = 13.5; // For now, must be an int, remove this limitation
+  const amount = 13.5; 
 
   let doLargeAmountPreapproval = false;
   let doGetOrdersStart = true;
@@ -79,7 +79,7 @@ async function main() {
   let doCancelOrder = false;
   let doDecreaseOrder = false; // ok
   let doGetPriceFeed = false; // ok
-  let doAcceptOrder = true;
+  let doAcceptOrder = false;
   let doGetOrdersFinish = true;
 
   // Preapproving a large amount saves on approve txfees whcih are are around 28 cents per approval.

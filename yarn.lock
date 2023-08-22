@@ -217,10 +217,10 @@
     "@ethersproject/properties" "^5.7.0"
     "@ethersproject/strings" "^5.7.0"
 
-"@foxify.trade/options-sdk@1.2.0-beta.2":
-  version "1.2.0-beta.2"
-  resolved "https://registry.yarnpkg.com/@foxify.trade/options-sdk/-/options-sdk-1.2.0-beta.2.tgz#0443eab4389b0eff3671a9abfb7c1f2630d16391"
-  integrity sha512-GaXtdq+icUefRprobRBbazfvlRS0R1jbWBapHIup9FNQHc8zKAh0n1zDL67UvNhHMrd9e/G4lFimvgeaGUvTGw==
+"@foxify.trade/options-sdk@1.2.0-beta.3":
+  version "1.2.0-beta.3"
+  resolved "https://registry.yarnpkg.com/@foxify.trade/options-sdk/-/options-sdk-1.2.0-beta.3.tgz#026e9105526054be978700e4e36b028c8db3da55"
+  integrity sha512-Ell+LK4eQlAH+wiSTIoJjAiHxQOjYYXMe+L6hTu42GGRJXkR/nkP4FqYXAHM65x9ni+KF6Y8UPQirNzHAZScYg==
   dependencies:
     "@pythnetwork/pyth-evm-js" "^1.20.1"
     axios "^1.4.0"
