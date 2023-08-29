@@ -130,16 +130,16 @@ async function main() {
 	let globalDbId = 39903;
 
 	if (doGetOrdersStart) {
-		// Type IGetOrderParams :
-		const orderParams = {
-account: sdk.contracts.sender,
-	 // closed: true, // status: true=inactive, false=active, both: "closed" bool is absent // FIXME as this is not super 
-	 // orderType: 'my_order' | 'all_order', // FIXME
-	 // orderType: 'my_order' as const,
-	 closed: false, // Select active orders only
-	 orderType: 'all_order' as const,  // orderType=all_order -> ALL ORDERS EXCEPT MINE / orderType=my_order -> MY ORDERS ONLY
-	 limit: 1000 // Pagination only 
-		}
+	   // Type IGetOrderParams :
+	   const orderParams = {
+            account: sdk.contracts.sender,
+	    // closed: true, // status: true=inactive, false=active, both: "closed" bool is absent // FIXME as this is not super 
+	    // orderType: 'my_order' | 'all_order', // FIXME
+	    // orderType: 'my_order' as const,
+	    closed: false, // Select active orders only
+	    orderType: 'all_order' as const,  // orderType=all_order -> ALL ORDERS EXCEPT MINE / orderType=my_order -> MY ORDERS ONLY
+	    limit: 1000 // Pagination only 
+	  }
 
 		const orders = await getOrders(); // await sdk.api.getOrders(orderParams);
 		const myOrderCount = await sdk.contracts.core.methods.creatorOrdersCount(sdk.contracts.sender).call();
@@ -147,7 +147,6 @@ account: sdk.contracts.sender,
 		console.log(`myOrderCount : ${myOrderCount}`);
 		console.log(`sender address: ${sdk.contracts.sender}`);
 		console.log (`There are ${orders.length} orders`);
-		// const nonNulOrders = orders.filter((order) => BigInt(order.available) > 0n);
 
 		// console.log (`BEGIN Displaying orders in human friendly format`);
 		for(let i = 0; i < orders.length; i++) {
@@ -323,7 +322,7 @@ async function displayOrder (order:any) {
 		"amount": Number(order.amount/1e6), //"25900000",
 		"reserved": Number(order.reserved)/1e6, // "0",
 		"available": Number(order.available)/1e6, // "25900000",
-		"percent": Number(order.percent)/1e6/divisor/100, // "1000000100000000000",
+		"percent": Number(order.percent)/1e6/divisor*10, // "1000000100000000000",
 		"direction": order.direction,
 		"rate": Number(order.rate) / 1e6/divisor, // "810000000000000000",
 		"duration": Number(order.duration), // "900",
