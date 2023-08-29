@@ -91,6 +91,7 @@ async function main() {
 	// Preapproving a large amount upfront saves on approve txfees whcih are are around 28 USD cents per approval.
 	// This needs to be done once for all and does not need to be repeated. 
 	// If you want to reestablish approval, set largePreapprovalAmount = 0;
+
 	if (doLargeAmountPreapproval) {
 		const largePreapprovalAmount = 1000000; // USDC
 		await sdk.contracts.approve(largePreapprovalAmount);
@@ -221,7 +222,7 @@ if (doDecreaseOrder) {
 if (doGetOrdersFinish) {
 	// Type IGetOrderParams :
 	const orderParams = {
-account: sdk.contracts.sender,
+         account: sdk.contracts.sender,
 	 // closed: true, // status: inactive, active, all // FIXME
 	 // orderType: 'my_order' | 'all_order', // FIXME
 	 // orderType: 'my_order' as const,
@@ -231,13 +232,14 @@ account: sdk.contracts.sender,
 	}
 
 	// const orders = await sdk.api.getOrders(orderParams);
-	const orders = await getOrders(); // sdk.api.getOrders(orderParams);
+	const orders = await getOrders(); //  sdk.api.getOrders(orderParams);
 					  // console.log (`FINISH : There are ${orders.length} orders : ${JSON.stringify(orders,null,2)}`);
 					  // const myOrderCount = await sdk.contracts.core.methods.creatorOrdersCount(sdk.contracts.sender).call();
 
 
 	console.log(`FINISH : There are ${orders.length} orders `); 
 	for(let i = 0; i < orders.length; i++) {
+		// console.log(`FINISH : nonHumanReadableOrders : ${JSON.stringify(await orders[i],null,2)}`); 
 		console.log(`FINISH : humanReadableOrders : ${JSON.stringify(await displayOrder(orders[i]),null,2)}`); 
 	}
 
@@ -321,7 +323,7 @@ async function displayOrder (order:any) {
 		"amount": Number(order.amount/1e6), //"25900000",
 		"reserved": Number(order.reserved)/1e6, // "0",
 		"available": Number(order.available)/1e6, // "25900000",
-		"percent": Number(order.percent)/1e6/divisor, // "1000000100000000000",
+		"percent": Number(order.percent)/1e6/divisor/100, // "1000000100000000000",
 		"direction": order.direction,
 		"rate": Number(order.rate) / 1e6/divisor, // "810000000000000000",
 		"duration": Number(order.duration), // "900",
