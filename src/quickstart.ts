@@ -2,7 +2,7 @@
 // Foxify repo of the option api SDK : https://github.com/foxify-trade/options-sdk
 // Current version : v1.2.0-beta.3
 //
-// Foxify swagger : 
+// Foxify swagger : TBD
 
 // To run this demo : 
 // Be careful, there is some code that places orders and act on the markets. Make sure you modify your parameters properly.
@@ -18,34 +18,33 @@
 // Smart contract code : https://arbiscan.io/address/0xec301D5a4ee80DF21E243E5490d29d44B83c27fC#code
 //
 // TIPS :
-// To check databaseOrderId #37387 on the GUI, go to page: https://www.beta.foxify.trade/order/37387
+// To check databaseOrderId #37387 on the GUI, go to page: https://www.beta.foxify.trade/order/37387 (the whole list of databaseorderId can be seen with doGetMarketActiveOrders = true)
 
 // BUGS :
-// orderCount seems wrong (20 != 17) :
+// orderCount seems wrong (20 != 17) 
 
 // TODO : 
-// Separate library
-// test acceptOrders
-// Human readable positions
+// getDatabaseId() and getBlockchainId() should be later on integrated within api
+// Only databaseId should in later versions be used to reference orders
 
 import assert from 'assert';
 import { OptionsSdk } from '@foxify.trade/options-sdk';
 require('dotenv').config();
 
 import {
-   createOrderParameters,
-   getDatabaseId,
-   getBlockchainId,
-   getOrders, 
-   displayOrder,
-   displayPosition,
-   trade,
-increaseOrderAmount,
-withdrawAmount,
-cancelOrder
+	createOrderParameters,
+	getDatabaseId,
+	getBlockchainId,
+	getOrders,
+	displayOrder,
+	displayPosition,
+	trade,
+	increaseOrderAmount,
+	withdrawAmount,
+	cancelOrder
 } from '../lib/foxify';
 
-import {OrderStatus, OrderType} from '../lib/foxify';
+import { OrderStatus, OrderType } from '../lib/foxify';
 
 assert(process.env.PK, 'Set your private key in .env');
 
@@ -146,10 +145,10 @@ async function main() {
 			console.log(`Orders : ${JSON.stringify(await displayOrder(myActiveOrders[i]), null, 2)}`);
 		}
 		// assert (Number(myActiveOrderCount) === myActiveOrders.length, `Problem in doGetActiveOrders : method sdk.contracts.core.methods.createorOrdersCount is incorrect (${myActiveOrderCount} != ${myActiveOrders.length})`);
-	    // FIXME : fail
+		// FIXME : fail
 	}
 
-    // List the binary options that in the market (which are not ours)
+	// List the binary options that in the market (which are not ours)
 	if (doGetMarketActiveOrders) {
 		const orderStatus: OrderStatus = "active"; // "active" | "inactive" | "activeAndInactive";
 		const orderType: OrderType = "others"; // "mine" | "others"
@@ -161,7 +160,7 @@ async function main() {
 		for (let i = 0; i < marketActiveOrders.length; i++) {
 			console.log(`Orders : ${JSON.stringify(await displayOrder(marketActiveOrders[i]), null, 2)}`);
 		}
-	    // FIXME : fail
+		// FIXME : fail
 	}
 	if (doGetPositions) {
 		// const { data: positions } = await sdk.api.raw.positions.positionControllerGetPositions(sdk.contracts.sender);
@@ -179,15 +178,15 @@ async function main() {
 _;~)                  (~;_
 (   |                  |   )
  ~', ',    ,''~'',   ,' ,'~
-    ', ','       ',' ,'
-        ',: {'} {'} :,'
-          ;   /^\   ;
-           ~\  ~  /~
-        ,' ,~~~~~, ',
+  ', ','       ',' ,'
+      ',: {'} {'} :,'
+        ;   /^\   ;
+         ~\  ~  /~
+       ,' ,~~~~~, ',
       ,' ,' ;~~~; ', ',
-     ,' ,'    '''    ', ',
-    (~  ;               ;  ~)
-     -;_)               (_;-
+    ,' ,'    '''    ', ',
+   (~  ;               ;  ~)
+    -;_)               (_;-
 
 */
 	// BE CAREFUL : this creates an order and  will actually place an order in the market
@@ -214,47 +213,47 @@ _;~)                  (~;_
 
 
 	// WARNING : actual trade : lift a pending offer in the market (or later, hit a bid price. Resting orders on the bid are not allowed yet). 
-	// To determine databaseId, you can scan the market bids and offers by setting "doGetMarketActiveOrders = true" above.
+	// To determine databaseId, you can scan the market bids and offers by setting "doGetMarketActiveOrders = true" in the code above.
 	if (doLiftPendingOrder) {
-		let  databaseId = 21216; // FIXME : TRY TO HIT an offer or a bid with a given order.id 
-	        let amount = 4; // USDC	
-                await trade(databaseId, amount); 
+		let databaseId = 21216; // FIXME : TRY TO HIT an offer or a bid with a given order.id 
+		let amount = 4; // USDC	
+		await trade(databaseId, amount);
 	}
 
-	// WARNING : actual size increase on one of our given existing bet
+	// WARNING : actual size increase on one of our pending order 
 	if (doIncreaseOrderAmount) {
-		let  databaseId = 41021; // myOrder.id
+		let databaseId = 41021; // myOrder.id
 		const diffAmount = 3;
-                await increaseOrderAmount (databaseId, diffAmount); 
+		await increaseOrderAmount(databaseId, diffAmount);
 	}
 
-	// WARNING : actual order cancellation on one of our order
+	// WARNING : actual order cancellation on one of our pending order
 	if (doCancelOrder) {
-		let  databaseId = 39860; // myOrder.id
-                await cancelOrder (databaseId); 
+		let databaseId = 39860; // myOrder.id
+		await cancelOrder(databaseId);
 	}
 
-	// WARNING : actual withdraw of capital on one of our order
+	// WARNING : actual withdraw of capital on one of our pending order
 	if (doWithdraw) {
-	  let  databaseId = 41021; // myOrder.id
-	  let amount = 1.0; // USDC 
-          await withdrawAmount(databaseId, amount);
+		let databaseId = 41021; // myOrder.id
+		let amount = 1.0; // USDC 
+		await withdrawAmount(databaseId, amount);
 	}
 
 
-        // For one of our order, test the functions getBlockchainId() and getDatabaseId() with
+	// For one of our order, test the functions getBlockchainId() and getDatabaseId() with
 	// myOrder.id and myOrder.orderId. 
 	if (doTestOrderId) {
-		let  databaseId = 39860; // Replace with your own myOrder.id : make sure this order is a pending order of ours
-		let  blockchainId = 649; // Replace with your own myOrder.orderId
+		let databaseId = 39860; // Replace with your own myOrder.id : make sure this order is a pending order of ours
+		let blockchainId = 649; // Replace with your own myOrder.orderId
 
 		const orderType: OrderType = "mine"; // "mine" | "others"
 		const blockchainIdOutput = await getBlockchainId(databaseId, orderType);
 		const databaseIdOutput = await getDatabaseId(blockchainId, orderType);
 		console.log(`databaseId = ${databaseId} / blockchainId = ${blockchainId}`);
 		console.log(`databaseIdOutput = ${databaseIdOutput} / blockchainIdOutput = ${blockchainIdOutput}`);
-		assert (blockchainId === blockchainIdOutput, `doTestOrderId failed : blockchainId != blockchainIdOutput`);
-		assert (databaseId === databaseIdOutput, `doTestOrderId failed : databaseId != databaseIdOutput`);
+		assert(blockchainId === blockchainIdOutput, `doTestOrderId failed : blockchainId != blockchainIdOutput`);
+		assert(databaseId === databaseIdOutput, `doTestOrderId failed : databaseId != databaseIdOutput`);
 	}
 
 }
