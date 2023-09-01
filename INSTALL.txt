@@ -1,0 +1,11 @@
+INSTALLATION :
+Install Node.js (version >= 14)
+
+yarn add @foxify.trade/options-sdk@1.2.0-beta.3
+
+STORE YOUR PRIVATE KEY in options-sdk/.env:
+.env : PK='abcefg.....'
+
+RUN DEMO :
+./run_quickstart.ts
+
