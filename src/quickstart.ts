@@ -31,8 +31,16 @@ import assert from 'assert';
 import { OptionsSdk } from '@foxify.trade/options-sdk';
 require('dotenv').config();
 
+import {
+   createOrderParameters,
+   getDatabaseId,
+   getBlockchainId,
+   getOrders, 
+   displayOrder
+} from '../lib/foxify';
+
 // FIXME
-// import {OrderStatus, OrderType} from '../lib/foxify';
+import {OrderStatus, OrderType} from '../lib/foxify';
 // import {getOrders} from '../lib/foxify';
 
 assert(process.env.PK, 'Set your private key in .env');
@@ -244,7 +252,7 @@ async function main() {
 }
 
 // THIS  BELOW SHOULD BE IN A LIBRARY
-
+/*
  type OrderStatus = "active" | "inactive" | "activeAndInactive";
  type OrderType = "mine" | "others";
 
@@ -349,47 +357,40 @@ async function getOrders(orderStatus: OrderStatus, orderType: OrderType) {
 
 async function displayOrder(order: any) {
 	// Structure of an order
-	/*
-	   {
-	   "id": 41641,
-	   "orderId": 685,
-	   "creator": "0x9e4f715734712c0902b077363ad522422d5d3ff9",
-	   "amount": "25900000",
-	   "reserved": "0",
-	   "available": "25900000",
-	   "percent": "1000000100000000000",
-	   "direction": "up",
-	   "rate": "810000000000000000",
-	   "duration": "900",
-	   "reinvest": false,
-	   "oracle": {
-	   "id": 20734,
-	   "name": "BTC/USD",
-	   "address": "0x0015d0ab0e5ac1f31f8c40fcf9844797feeb1b09",
-	   "priceId": "0xe62df6c8b4a85fe1a67db44dc12de5db330f7ac66b72dc658afedf0f4a415b43",
-	   "decimals": "18"
-	   },
-	   "orderStats": {
-	   "countWon": 2,
-	   "countLost": 1,
-	   "lostSum": "8100000",
-	   "wonSum": "29382716"
-	   }
-	   }
-	 */
+//	
+//	   {
+//	   "id": 41641,
+//	   "orderId": 685,
+//	   "creator": "0x9e4f715734712c0902b077363ad522422d5d3ff9",
+//	   "amount": "25900000",
+//	   "reserved": "0",
+//	   "available": "25900000",
+//	   "percent": "1000000100000000000",
+//	   "direction": "up",
+//	   "rate": "810000000000000000",
+//	   "duration": "900",
+//	   "reinvest": false,
+//	   "oracle": {
+//	   "id": 20734,
+//	   "name": "BTC/USD",
+//	   "address": "0x0015d0ab0e5ac1f31f8c40fcf9844797feeb1b09",
+//	   "priceId": "0xe62df6c8b4a85fe1a67db44dc12de5db330f7ac66b72dc658afedf0f4a415b43",
+//	   "decimals": "18"
+//	   },
+//	   "orderStats": {
+//	   "countWon": 2,
+//	   "countLost": 1,
+//	   "lostSum": "8100000",
+//	   "wonSum": "29382716"
+//	   }
+//	   }
+//	 
 
 	const divisor = 10e10;
 
 	const latestOraclePx = await sdk.priceFeed.getLatestPrice(order.oracle.address);
 	const humanReadableOrder = {
-		"oracle": order.oracle.name, /* {
-						"id": 20734,
-						"name": "BTC/USD",
-						"address": "0x0015d0ab0e5ac1f31f8c40fcf9844797feeb1b09", "priceId": "0xe62df6c8b4a85fe1a67db44dc12de5db330f7ac66b72dc658afedf0f4a415b43",
-						"decimals": "18"
-						},
-
-					      */
+		"oracle": order.oracle.name, 
 		"oraclePx": latestOraclePx,
 		"id": order.id,
 		"orderId": order.orderId,
@@ -403,25 +404,8 @@ async function displayOrder(order: any) {
 		"duration": Number(order.duration),
 		"reinvest": order.reinvest
 
-		
-		/*
-		   "orderStats": {
-		   "countWon": order?.orderStats?.countWon,
-		   "countLost": order?.orderStats?.countLost,
-		   "lostsum": Number(order?.orderStats?.lostSum)/1e6,
-		   "wonsum": Number(order?.orderStats?.wonSum)/1e6,
-		   }
-		 */
-		/*
-		   "orderStats": {
-		   "countWon": 2,
-		   "countLost": 1,
-		   "lostSum": "8100000",
-		   "wonSum": "29382716"
-		   }
-		 */
 	}
 	return humanReadableOrder
 }
-
+*/
 main();
