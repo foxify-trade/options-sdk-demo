@@ -25,6 +25,7 @@
 // TODO : 
 // Separate library
 // test acceptOrders
+// Human readable positions
 
 import assert from 'assert';
 import { OptionsSdk } from '@foxify.trade/options-sdk';
@@ -239,19 +240,7 @@ async function main() {
 		await sdk.contracts.decreaseOrderAmount(blockchainId, diffAmount);
 		console.log(`blockchainId #${blockchainId}/databaseId #${databaseId} was decreased by available ${diffAmount} USDC`);
 	}
-/*
-	if (doGetOrdersFinish) {
-		const orderStatus: OrderStatus = "active"; // "active" | "inactive" | "activeAndInactive";
-		const orderType: OrderType = "mine"; // "mine" | "others"
-		const orders = await getOrders(orderStatus, orderType);
 
-		console.log(`FINISH : There are ${orders.length} orders `);
-		for (let i = 0; i < orders.length; i++) {
-			// console.log(`FINISH : nonHumanReadableOrders : ${JSON.stringify(await orders[i],null,2)}`); 
-			console.log(`FINISH : humanReadableOrders : ${JSON.stringify(await displayOrder(orders[i]), null, 2)}`);
-		}	
-	}
-*/
 }
 
 // THIS  BELOW SHOULD BE IN A LIBRARY
