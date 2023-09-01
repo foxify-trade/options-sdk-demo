@@ -20,7 +20,12 @@
 //   -for all functions called from sdk.contracts : "myOrder.orderId" (i.e. blockchain id), accessible through "getBlockchainId(databaseId)"
 
 // BUGS :
-// doGetOrders = true : 
+// orderCount seems wrong (20 != 17) :
+
+// TODO : 
+// Separate library
+// test acceptOrders
+
 import assert from 'assert';
 import { OptionsSdk } from '@foxify.trade/options-sdk';
 require('dotenv').config();
