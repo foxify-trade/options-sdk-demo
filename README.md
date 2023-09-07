@@ -14,3 +14,5 @@ STORE YOUR PRIVATE KEY in options-sdk-demo/.env:
 RUN DEMO : READ THE DEMO AND CHANGE IT BEFORE RUNNING IT BECAUSE ORDERS WILL BE PLACED IN THE LIVE MARKET !
 cd options-sdk-demo  
 ./run_quickstart.sh
+
+This will run src/quickstart.ts which are a collection of generic routines that can be used as a foundation for a trading bot.
