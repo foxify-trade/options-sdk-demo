@@ -3,6 +3,8 @@
 INSTALLATION :  
 Install Node.js (version >= 14)  
 git clone git@github.com:foxify-trade/options-sdk-demo.git  
+or if you have authentification issues : 
+git clone https://github.com/foxify-trade/options-sdk-demo.git
 
 
 cd options-sdk-demo  
